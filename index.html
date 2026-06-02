@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DECODED — Inteligência Operacional para GPs em Tecnologia</title>
+  <meta name="description" content="Plataforma de inteligência operacional para Gerentes de Projetos em ecossistema tech. 148 termos, 26 seções, conteúdo autoral de Jéssica Mariano." />
+  <meta name="author" content="Jéssica Mariano" />
+  <meta property="og:title" content="DECODED — Inteligência Operacional para GPs" />
+  <meta property="og:description" content="148 termos técnicos, 26 seções, vocabulário autoral. O guia de campo para GPs em tecnologia." />
+  <meta property="og:url" content="https://jessicamariano.github.io/decoded-gp" />
+  <meta name="theme-color" content="#080810" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #080810; color: #DCDCF0; font-family: sans-serif; }
+    #loading {
+      position: fixed; inset: 0;
+      background: #080810;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 20px; z-index: 9999;
+      transition: opacity 0.4s ease;
+    }
+    #loading-title {
+      font-family: sans-serif; font-weight: 800;
+      font-size: 48px; letter-spacing: -0.04em;
+      color: #F0F0FA;
+    }
+    #loading-title span { color: #00D4FF; }
+    #loading-bar-wrap {
+      width: 200px; height: 2px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px; overflow: hidden;
+    }
+    #loading-bar {
+      height: 100%; width: 0%;
+      background: #00D4FF;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+    #loading-label {
+      font-family: monospace; font-size: 11px;
+      color: #484868; letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div id="loading-title">DE<span>COD</span>ED</div>
+    <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+    <div id="loading-label">Carregando...</div>
+  </div>
+
+  <div id="root"></div>
+
+  <!-- React -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <!-- Babel Standalone (compila JSX no browser) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+
+  <script>
+    // Progresso visual durante o carregamento
+    const bar = document.getElementById('loading-bar');
+    const label = document.getElementById('loading-label');
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress = Math.min(progress + Math.random() * 15, 90);
+      bar.style.width = progress + '%';
+    }, 200);
+
+    // Carregar o JSX e compilar
+    fetch('./DECODED_FINAL.jsx')
+      .then(r => {
+        if (!r.ok) throw new Error('Arquivo DECODED_FINAL.jsx não encontrado.');
+        label.textContent = 'Compilando...';
+        bar.style.width = '92%';
+        return r.text();
+      })
+      .then(code => {
+        clearInterval(interval);
+        bar.style.width = '100%';
+        label.textContent = 'Iniciando...';
+
+        // Compilar JSX para JS puro via Babel
+        const compiled = Babel.transform(code, {
+          presets: ['react'],
+          plugins: []
+        }).code;
+
+        // Executar o código compilado
+        const script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.textContent = compiled + `
+          const root = ReactDOM.createRoot(document.getElementById('root'));
+          root.render(React.createElement(App));
+        `;
+        document.body.appendChild(script);
+
+        // Esconder loading
+        setTimeout(() => {
+          const loading = document.getElementById('loading');
+          loading.style.opacity = '0';
+          setTimeout(() => loading.remove(), 400);
+        }, 300);
+      })
+      .catch(err => {
+        clearInterval(interval);
+        document.getElementById('loading').innerHTML = `
+          <div style="text-align:center;padding:40px">
+            <div style="font-family:monospace;font-size:14px;color:#FF2D55;margin-bottom:12px">Erro ao carregar</div>
+            <div style="font-family:monospace;font-size:12px;color:#606080">${err.message}</div>
+            <div style="font-family:monospace;font-size:11px;color:#484868;margin-top:16px">
+              Verifique se o arquivo DECODED_FINAL.jsx está na mesma pasta do index.html
+            </div>
+          </div>
+        `;
+      });
+  </script>
+</body>
+</html>
